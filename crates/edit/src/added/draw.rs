@@ -1,6 +1,6 @@
 use super::layout::{
-    Piece, arabic_error, hebrew_error, is_arabic, is_hebrew, is_thai, korean_error, latin_width, lines, norm, shaped_layout, text_rect, thai_error,
-    wrapped,
+    Piece, arabic_error, has_hangul, hebrew_error, is_arabic, is_hebrew, is_thai, korean_error, latin_width, lines, norm, shaped_layout, text_rect,
+    thai_error, wrapped,
 };
 use super::types::{AddedText, Align, Family};
 use super::{
@@ -24,9 +24,10 @@ pub(super) type LaidLine = (String, bool, Vec<Piece>, f64);
 /// come from Type 3 fonts drawn from the craft-fonts face's outlines (no font file is embedded),
 /// with a ToUnicode map for copy and search. Other text uses the item's standard font.
 fn draw_shaped(doc: &mut Document, t: &AddedText, taken: &Dict, fonts: &mut Dict, out: &mut Vec<u8>) -> Result<(), EditError> {
+    let korean = has_hangul(t);
     let laid = wrapped(t)
         .into_iter()
-        .map(|(line, rtl)| shaped_layout(t, &line, rtl).map(|(pieces, w)| (line, rtl, pieces, w)))
+        .map(|(line, rtl)| shaped_layout(t, &line, rtl, korean).map(|(pieces, w)| (line, rtl, pieces, w)))
         .collect::<Result<Vec<_>, _>>()?;
     draw_laid_shaped(doc, t, &laid, taken, fonts, out, shaped_glyph)
 }
